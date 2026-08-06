@@ -1,0 +1,36 @@
+name: Lint
+
+on:
+  pull_request:
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    name: Check formatting of terraform files
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform fmt check
+        run: terraform fmt -check -recursive .
+
+  validate:
+    runs-on: ubuntu-latest
+    name: Validate terraform configurations
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform validate (modules + smoke tests)
+        run: |
+          set -e
+          for d in modules/*/*/ test/*/; do
+            echo "validating $d"
+            (cd "$d" && terraform init -backend=false -input=false >/dev/null && terraform validate -no-color)
+          done
