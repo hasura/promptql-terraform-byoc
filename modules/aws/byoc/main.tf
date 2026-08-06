@@ -2,7 +2,6 @@ data "aws_caller_identity" "current" {}
 
 locals {
   account_id = data.aws_caller_identity.current.account_id
-  member     = "arn:aws:iam::${local.account_id}:role/${var.role_name}"
 }
 
 # ---------------------------------------------------------------------------
