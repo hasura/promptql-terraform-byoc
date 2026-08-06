@@ -28,6 +28,12 @@ variable "deletion_window_in_days" {
   default     = 30
 }
 
+variable "administrator_arns" {
+  type        = list(string)
+  description = "IAM principals that may administer the key (EnableIAMUserPermissions statement). Defaults to the account root."
+  default     = null
+}
+
 variable "tags" {
   type        = map(string)
   description = "Optional tags applied to the KMS key."
