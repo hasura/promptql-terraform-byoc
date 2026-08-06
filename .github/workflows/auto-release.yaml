@@ -1,0 +1,61 @@
+name: Auto-release module changes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "modules/**"
+
+concurrency:
+  group: auto-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  validate:
+    name: Validate terraform configurations
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform validate (modules + smoke tests)
+        run: |
+          set -e
+          for d in modules/*/*/ test/*/; do
+            echo "validating $d"
+            (cd "$d" && terraform init -backend=false -input=false >/dev/null && terraform validate -no-color)
+          done
+
+  release:
+    name: Tag release
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Plan release
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/scripts/plan-release.sh
+
+      - name: Create release
+        if: steps.plan.outputs.version != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.plan.outputs.version }}
+        run: |
+          gh release create "$VERSION" \
+            --target "${{ github.sha }}" \
+            --title "$VERSION" \
+            --notes-file release-notes.md
