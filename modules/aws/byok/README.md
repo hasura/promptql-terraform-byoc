@@ -43,6 +43,7 @@ Set `create_key = false` and pass `existing_key_id` (key ID or ARN). The module 
 | description | Key description | string | `"PromptQL customer-managed encryption key"` | no |
 | alias | Key alias (no `alias/` prefix) | string | `"hasura-ddn-cmek"` | no |
 | deletion_window_in_days | Deletion window | number | `30` | no |
+| administrator_arns | IAM principals that may administer the key (defaults to account root) | list(string) | `null` | no |
 | tags | Optional tags on the key | map(string) | `{}` | no |
 
 ## Outputs
